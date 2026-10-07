@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Диагностический тест по математике | 8 класс</title>
+  <title>Диагностический тест по математике | 7 класс</title>
   
   <!-- MathJax SVG с локальным кешем шрифтов -->
   <script>
@@ -82,7 +82,9 @@
     
     .btn-check { background: var(--primary-blue); color: #fff; border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 12px; transition: 0.2s; }
     .btn-check:hover { background: #1d4ed8; }
-    .feedback { display: inline-block; margin-left: 15px; font-weight: bold; font-size: 1.05em; }
+    .feedback { display: none; }
+    .answer-note { margin-top: 8px; color: #64748b; font-size: 0.88em; }
+    .finish-note { margin-top: 10px; color: #64748b; font-size: 0.9em; text-align: center; }
 
     /* Секция прикрепления фото решений */
     .photo-section {
@@ -122,6 +124,7 @@
 
     .btn-final { display: block; width: 100%; padding: 16px; background: #16a34a; color: white; border: none; border-radius: 8px; font-size: 1.2em; font-weight: bold; cursor: pointer; margin-top: 25px; transition: 0.2s; }
     .btn-final:hover { background: #15803d; }
+    .btn-final:disabled { background: #94a3b8; cursor: wait; }
 
     .btn-pdf { display: inline-block; background: var(--primary-dark); color: #fff; border: none; padding: 12px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; margin-bottom: 20px; transition: 0.2s; }
     .btn-pdf:hover:not(:disabled) { background: var(--primary-blue); }
@@ -224,11 +227,11 @@
     /* СКРЫТЫЙ СТРОГИЙ A4-МАКЕТ                                  */
     /* ========================================================= */
     #pdf-export-container {
-      position: fixed;
+      position: absolute;
       top: 0;
-      left: 0;
-      z-index: -9999;
-      opacity: 0;
+      left: -10000px;
+      z-index: 1;
+      opacity: 1;
       pointer-events: none;
       width: 794px !important;
       -webkit-text-size-adjust: 100% !important;
@@ -250,7 +253,7 @@
       margin: 0 auto !important;
       border-radius: 0 !important;
       position: relative !important;
-      overflow: hidden !important;
+      overflow: visible !important;
       font-size: 16px !important;
     }
 
@@ -363,11 +366,12 @@
 <div class="container" id="main-container">
   <!-- Экран авторизации -->
   <div id="auth-screen">
-    <h2>Диагностическое тестирование по математике (8 класс)</h2>
+    <h2>Диагностическое тестирование по математике (7 класс)</h2>
     <p style="color: #64748b; margin-bottom: 25px;">Заполните свои данные для начала прохождения теста:</p>
+    <div id="resume-note" style="color:#64748b; font-size:0.9em; min-height:20px;"></div>
     <div class="auth-form">
-      <input type="text" id="studentFirstName" class="auth-input" placeholder="Имя" oninput="saveStateToStorage()" required>
-      <input type="text" id="studentLastName" class="auth-input" placeholder="Фамилия" oninput="saveStateToStorage()" required>
+      <input type="text" id="studentFirstName" class="auth-input" placeholder="Имя" oninput="scheduleSaveState()" required>
+      <input type="text" id="studentLastName" class="auth-input" placeholder="Фамилия" oninput="scheduleSaveState()" required>
       <button class="btn-check" style="font-size: 1.1em; padding: 12px;" onclick="startQuiz()">Начать тест</button>
     </div>
   </div>
@@ -375,26 +379,27 @@
   <!-- Экран теста -->
   <div id="quiz-screen" style="display: none;">
     <div class="top-instruction">
-      Решайте задания по порядку. Если ответ — десятичная дробь, используйте запятую (например, 2,5).<br>
-      <strong style="display: inline-block; margin-top: 6px;">📌 Важно: сохраняйте все свои письменные решения (черновик) — в самом конце теста их нужно будет сфотографировать и прикрепить файлами перед отправкой!</strong>
+      Решайте задания самостоятельно. Если не знаете ответ, оставьте поле пустым или не выбирайте вариант — это тоже результат диагностики.<br>
+      <strong style="display: inline-block; margin-top: 6px;">📌 Ответы не проверяются во время прохождения. Результат появится только после завершения всей диагностики.</strong>
     </div>
 
     <div id="quiz-container"></div>
 
     <!-- Блок прикрепления фотографий решений -->
     <div class="photo-section">
-      <h3>📷 Прикрепить фото или файлы письменных решений</h3>
-      <p>Загрузите фотографии или сканы ваших черновиков перед завершением тестирования:</p>
+      <h3>📷 Прикрепить фото письменных решений</h3>
+      <p>Если вы решали задания письменно, прикрепите фотографии черновиков — они помогут точнее понять причины ошибок.</p>
       
-      <input type="file" id="solutionPhotosInput" accept="image/*" multiple style="display: none;" onchange="handlePhotoUpload(event)">
+      <input type="file" id="solutionPhotosInput" accept="image/*,.jpg,.jpeg,.png,.webp" multiple style="display: none;" onchange="handlePhotoUpload(event)">
       <button type="button" class="btn-photo-upload" onclick="document.getElementById('solutionPhotosInput').click()">
-        ➕ Прикрепить фото или файлы решений
+        ➕ Прикрепить фото решений
       </button>
 
       <div class="photo-preview-grid" id="photoPreviewGrid"></div>
+      <div class="finish-note">Фотографии не сохраняются при закрытии страницы до отправки результата.</div>
     </div>
 
-    <button class="btn-final" id="finishBtn" onclick="checkAll()">Завершить и посмотреть результаты</button>
+    <button class="btn-final" id="finishBtn" onclick="checkAll()">Завершить диагностику</button>
   </div>
 </div>
 
@@ -412,21 +417,51 @@
 </div>
 
 <script>
-  // Настройки Telegram бота
+  // Тестовая версия: Telegram-токен пока оставляем в frontend по просьбе владельца проекта.
+  // Перед публичным запуском токен нужно будет вынести на сервер/Cloudflare Worker.
   const BOT_TOKEN = '8653464504:AAFpobQydaloxKuIojpyBaV84sHr1hy2HwE';
   const CHAT_ID = '433123553';
 
+  const STORAGE_KEY = 'math_test_saved_state_7kl_v2';
   let studentData = { firstName: "", lastName: "", fullName: "" };
   let uploadedPhotos = [];
   let generatedPdfBlob = null;
+  let diagnosticFinished = false;
+  let isSubmitting = false;
+  let saveTimer = null;
+  const attemptResults = {};
 
   function escapeHtml(text) {
-    return String(text).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    return String(text ?? '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+  }
+
+  function getQuestionId(bIdx, tIdx, qIdx) {
+    return `q_${bIdx}_${tIdx}_${qIdx}`;
+  }
+
+  function getQuestionMeta(bIdx, tIdx, qIdx) {
+    const block = quizData[bIdx];
+    const theme = block.themes[tIdx];
+    const qDef = theme.questions[qIdx];
+    return {
+      id: getQuestionId(bIdx, tIdx, qIdx),
+      block: block.block,
+      theme: theme.theme,
+      subtopic: qDef.subtopic || theme.theme,
+      skill: qDef.skill || '',
+      difficulty: qDef.difficulty || null
+    };
+  }
+
+  function scheduleSaveState() {
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(saveStateToStorage, 250);
   }
 
   window.onbeforeunload = function() {
-    if (document.getElementById("quiz-screen").style.display === "block") {
-      return "Вы уверены, что хотите покинуть страницу? Введенные данные сохранены в браузере.";
+    if (document.getElementById("quiz-screen").style.display === "block" && !diagnosticFinished) {
+      saveStateToStorage();
+      return "Вы уверены, что хотите покинуть страницу? Ответы сохранены в браузере.";
     }
   };
 
@@ -440,40 +475,47 @@
     }
   }
 
+  function readAnswer(qId, qDef) {
+    if (qDef.type === "radio") {
+      const checked = document.querySelector(`input[name="${qId}"]:checked`);
+      return checked ? checked.value : "";
+    }
+    const input = document.getElementById(qId);
+    return input ? input.value.trim() : "";
+  }
+
   function saveStateToStorage() {
-    const fn = document.getElementById("studentFirstName").value.trim();
-    const ln = document.getElementById("studentLastName").value.trim();
-    
-    const answersData = {};
-    quizData.forEach((block, bIdx) => {
-      block.themes.forEach((theme, tIdx) => {
-        theme.questions.forEach((qDef, qIdx) => {
-          const qId = `q_${bIdx}_${tIdx}_${qIdx}`;
-          if (qDef.type === "radio") {
-            const checked = document.querySelector(`input[name="${qId}"]:checked`);
-            if (checked) answersData[qId] = checked.value;
-          } else {
-            const input = document.getElementById(qId);
-            if (input && input.value) answersData[qId] = input.value;
-          }
+    try {
+      const fn = document.getElementById("studentFirstName")?.value.trim() || studentData.firstName || "";
+      const ln = document.getElementById("studentLastName")?.value.trim() || studentData.lastName || "";
+      const answersData = {};
+
+      quizData.forEach((block, bIdx) => {
+        block.themes.forEach((theme, tIdx) => {
+          theme.questions.forEach((qDef, qIdx) => {
+            const qId = getQuestionId(bIdx, tIdx, qIdx);
+            const value = readAnswer(qId, qDef);
+            if (value !== "") answersData[qId] = value;
+          });
         });
       });
-    });
 
-    const state = {
-      firstName: fn,
-      lastName: ln,
-      answers: answersData,
-      isStarted: document.getElementById("quiz-screen").style.display === "block"
-    };
-
-    localStorage.setItem('math_test_saved_state_8kl', JSON.stringify(state));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        version: 2,
+        firstName: fn,
+        lastName: ln,
+        answers: answersData,
+        isStarted: document.getElementById("quiz-screen").style.display === "block",
+        savedAt: new Date().toISOString()
+      }));
+    } catch (e) {
+      console.error("Ошибка сохранения состояния:", e);
+    }
   }
 
   async function restoreStateFromStorage() {
-    const saved = localStorage.getItem('math_test_saved_state_8kl');
+    const saved = localStorage.getItem(STORAGE_KEY);
     if (!saved) return;
-
     try {
       const state = JSON.parse(saved);
       if (state.firstName) document.getElementById("studentFirstName").value = state.firstName;
@@ -483,56 +525,74 @@
         studentData.firstName = state.firstName;
         studentData.lastName = state.lastName;
         studentData.fullName = `${state.firstName} ${state.lastName}`;
-
         document.getElementById("auth-screen").style.display = "none";
         document.getElementById("quiz-screen").style.display = "block";
         await renderQuiz();
 
-        if (state.answers) {
-          Object.keys(state.answers).forEach(qId => {
-            const val = state.answers[qId];
-            const textInput = document.getElementById(qId);
-            if (textInput) {
-              textInput.value = val;
-            } else {
-              const radioInput = document.querySelector(`input[name="${qId}"][value="${val}"]`);
-              if (radioInput) radioInput.checked = true;
-            }
-          });
-        }
+        Object.entries(state.answers || {}).forEach(([qId, val]) => {
+          const textInput = document.getElementById(qId);
+          if (textInput) {
+            textInput.value = val;
+          } else {
+            const radioInput = document.querySelector(`input[name="${qId}"][value="${CSS.escape(String(val))}"]`);
+            if (radioInput) radioInput.checked = true;
+          }
+        });
+        const note = document.getElementById('resume-note');
+        if (note && Object.keys(state.answers || {}).length) note.textContent = 'Продолжаем с сохранёнными ответами.';
       }
     } catch(e) {
       console.error("Ошибка при восстановлении данных:", e);
+      localStorage.removeItem(STORAGE_KEY);
     }
   }
 
   function clearStorage() {
-    localStorage.removeItem('math_test_saved_state_8kl');
+    localStorage.removeItem(STORAGE_KEY);
+  }
+
+  function parseNumericValue(value) {
+    if (value == null) return null;
+    const text = String(value).trim().replace(/,/g, '.').replace(/\s+/g, '');
+    if (!text) return null;
+    const fraction = text.match(/^(-?\d+(?:\.\d+)?)\/(\d+(?:\.\d+)?)$/);
+    if (fraction) {
+      const denominator = Number(fraction[2]);
+      if (denominator === 0) return null;
+      return Number(fraction[1]) / denominator;
+    }
+    const number = Number(text);
+    return Number.isFinite(number) ? number : null;
+  }
+
+  function answersEqual(userValue, correctValue) {
+    const user = String(userValue ?? '').trim();
+    const correct = String(correctValue ?? '').trim();
+    if (!user || !correct) return false;
+    const userNumber = parseNumericValue(user);
+    const correctNumber = parseNumericValue(correct);
+    if (userNumber !== null && correctNumber !== null) return Math.abs(userNumber - correctNumber) < 1e-9;
+    return user.replace(/,/g, '.').replace(/\s+/g, '').toLowerCase() === correct.replace(/,/g, '.').replace(/\s+/g, '').toLowerCase();
   }
 
   function compressImage(file, maxWidth = 1200, maxHeight = 1200, quality = 0.75) {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       const reader = new FileReader();
+      reader.onerror = () => reject(new Error('Не удалось прочитать изображение'));
       reader.onload = (e) => {
         const img = new Image();
+        img.onerror = () => reject(new Error('Не удалось открыть изображение'));
         img.onload = () => {
-          let width = img.width;
-          let height = img.height;
-          if (width > maxWidth || height > maxHeight) {
-            if (width > height) {
-              height = Math.round((height * maxWidth) / width);
-              width = maxWidth;
-            } else {
-              width = Math.round((width * maxHeight) / height);
-              width = maxHeight;
-            }
-          }
+          const scale = Math.min(1, maxWidth / img.width, maxHeight / img.height);
+          const width = Math.max(1, Math.round(img.width * scale));
+          const height = Math.max(1, Math.round(img.height * scale));
           const canvas = document.createElement('canvas');
           canvas.width = width;
           canvas.height = height;
-          const ctx = canvas.getContext('2d');
+          const ctx = canvas.getContext('2d', { alpha: false });
           ctx.drawImage(img, 0, 0, width, height);
           canvas.toBlob((blob) => {
+            if (!blob) return reject(new Error('Не удалось сжать изображение'));
             resolve(new File([blob], file.name.replace(/\.[^/.]+$/, "") + ".jpg", { type: 'image/jpeg' }));
           }, 'image/jpeg', quality);
         };
@@ -543,12 +603,14 @@
   }
 
   async function handlePhotoUpload(event) {
-    const files = Array.from(event.target.files);
-    for (const file of files) {
-      if (file.type.startsWith('image/')) {
-        const compressedFile = await compressImage(file);
-        uploadedPhotos.push(compressedFile);
-      }
+    const files = Array.from(event.target.files || []);
+    const MAX_PHOTOS = 20;
+    const available = Math.max(0, MAX_PHOTOS - uploadedPhotos.length);
+    if (files.length > available) alert(`Можно прикрепить не более ${MAX_PHOTOS} фотографий.`);
+    for (const file of files.slice(0, available)) {
+      if (!file.type.startsWith('image/')) continue;
+      try { uploadedPhotos.push(await compressImage(file)); }
+      catch (error) { console.error(error); }
     }
     renderPhotoPreviews();
     event.target.value = '';
@@ -561,21 +623,21 @@
 
   function renderPhotoPreviews() {
     const grid = document.getElementById('photoPreviewGrid');
+    if (!grid) return;
     grid.innerHTML = '';
-
     uploadedPhotos.forEach((file, idx) => {
       const card = document.createElement('div');
       card.className = 'photo-preview-card';
-      
       const img = document.createElement('img');
-      img.src = URL.createObjectURL(file);
-      
+      const objectUrl = URL.createObjectURL(file);
+      img.src = objectUrl;
+      img.onload = () => URL.revokeObjectURL(objectUrl);
       const removeBtn = document.createElement('button');
       removeBtn.className = 'photo-remove-btn';
       removeBtn.type = 'button';
+      removeBtn.setAttribute('aria-label', `Удалить фото ${idx + 1}`);
       removeBtn.innerHTML = '✕';
       removeBtn.onclick = () => removePhoto(idx);
-
       card.appendChild(img);
       card.appendChild(removeBtn);
       grid.appendChild(card);
@@ -585,23 +647,19 @@
   async function startQuiz() {
     const firstName = document.getElementById("studentFirstName").value.trim();
     const lastName = document.getElementById("studentLastName").value.trim();
-
     if (!firstName || !lastName) {
       alert("Пожалуйста, введите ваше имя и фамилию!");
       return;
     }
-
     studentData.firstName = firstName;
     studentData.lastName = lastName;
     studentData.fullName = `${firstName} ${lastName}`;
-
     document.getElementById("auth-screen").style.display = "none";
     document.getElementById("quiz-screen").style.display = "block";
     saveStateToStorage();
     await renderQuiz();
   }
 
-  // ДАННЫЕ ДИАГНОСТИЧЕСКОГО ТЕСТА ДЛЯ 8 КЛАССА (1-7 КЛАССЫ)
   const quizData = [
     {
       block: "Блок 1. Арифметика и Числовые системы (1–6 классы)",
@@ -734,7 +792,7 @@
           theme: "5. Вводные знания об алгебраических дробях",
           questions: [
             { type: "text", a: "3", q: "Найдите значение переменной \\(x\\), при котором выражение \\(\\frac{x + 5}{x - 3}\\) не имеет смысла." },
-            { type: "radio", a: 0, q: "Сократите дробь: \\(\\frac{a^2 - 9}{2a + 6}\\)", options: ["\\(\\frac{a - 3}{2}\\)", "\\(\\frac{a + 3}{2}\\)", "\\(a - 3\\)"] }
+            { type: "radio", a: 0, q: "Сократите дробь \\(\\frac{a^2 - 9}{2a + 6}\\) и укажите ограничение на переменную.", options: ["\\(\\frac{a - 3}{2}\\), \\(a \\ne -3\\)", "\\(\\frac{a + 3}{2}\\), \\(a \\ne 3\\)", "\\(a - 3\\), \\(a \\ne -3\\)"] }
           ]
         }
       ]
@@ -791,7 +849,7 @@
         {
           theme: "3. Чтение графиков",
           questions: [
-            { type: "text", a: "3", q: "По графику линейной функции, проходящей через точку \\((-2; 3)\\), определите значение \\(y\\) при \\(x = -2\\)." },
+            { type: "text", a: "3", q: "Функция проходит через точку \\((-2; 3)\\). Определите значение \\(y\\) при \\(x = -2\\)." },
             { type: "text", a: "4", q: "Найдите нули функции \\(y = 2x - 8\\)." },
             { type: "radio", a: 0, q: "Найдите координаты точек пересечения графика функции \\(y = 5x - 10\\) с осями \\(OX\\) и \\(OY\\):", options: ["с OX: (2; 0), с OY: (0; -10)", "с OX: (0; 2), с OY: (-10; 0)", "с OX: (-2; 0), с OY: (0; 10)"] }
           ]
@@ -875,7 +933,7 @@
             { type: "text", a: "90", q: "В \\(\\triangle ABC\\) отрезок \\(BD\\) проведен из вершины \\(B\\) перпендикулярно прямой \\(AC\\). Чему равен угол \\(\\angle BDA\\) в градусах?" },
             { type: "text", a: "40", q: "В \\(\\triangle ABC\\) отрезок \\(BL\\) делит угол \\(\\angle ABC\\) пополам. Известно, что \\(\\angle ABC = 80^\\circ\\). Найдите угол \\(\\angle ABL\\)." },
             { type: "text", a: "6", q: "В равнобедренном треугольнике боковая сторона равна \\(8\\text{ см}\\), а периметр равен \\(22\\text{ см}\\). Найдите основание треугольника." },
-            { type: "radio", a: 0, q: "Отрезок \\(BD\\) — биссектриса, проведенная к основанию \\(AC\\) равнобедренного треугольника \\(ABC\\). Чем еще является отрезок \\(BD\\)?", options: ["Медианой и высотой", "Только среднеспиралью", "Только высотой"] },
+            { type: "radio", a: 0, q: "Отрезок \\(BD\\) — биссектриса, проведенная к основанию \\(AC\\) равнобедренного треугольника \\(ABC\\). Чем еще является отрезок \\(BD\\)?", options: ["Медианой и высотой", "Только медианой", "Только высотой"] },
             { type: "text", a: "70", q: "Два угла треугольника равны \\(40^\\circ\\) и \\(70^\\circ\\). Найдите третий угол." },
             { type: "radio", a: 0, q: "Внешний угол треугольника равен \\(110^\\circ\\), а один из не смежных с ним внутренних углов равен \\(50^\\circ\\). Найдите остальные внутренние углы треугольника:", options: ["\\(70^\\circ, 50^\\circ, 60^\\circ\\)", "\\(110^\\circ, 50^\\circ, 20^\\circ\\)", "\\(70^\\circ, 70^\\circ, 40^\\circ\\)"] },
             { type: "text", a: "7", q: "В прямоугольном треугольнике один из острых углов равен \\(30^\\circ\\), а гипотенуза равна \\(14\\text{ см}\\). Найдите катет, лежащий против этого угла." },
@@ -928,120 +986,91 @@
   async function renderQuiz() {
     let html = "";
     let qIndex = 1;
-
     quizData.forEach((block, bIdx) => {
-      html += `<h2 class="block-title">${block.block}</h2>`;
+      html += `<h2 class="block-title">${escapeHtml(block.block)}</h2>`;
       block.themes.forEach((theme, tIdx) => {
-        html += `<h3 class="theme-title">${theme.theme}</h3>`;
+        html += `<h3 class="theme-title">${escapeHtml(theme.theme)}</h3>`;
         theme.questions.forEach((qDef, qIdx) => {
-          const qId = `q_${bIdx}_${tIdx}_${qIdx}`;
-          html += `<div class="card" id="card_${qId}">`;
+          const qId = getQuestionId(bIdx, tIdx, qIdx);
+          html += `<div class="card" id="card_${qId}" data-question-id="${qId}">`;
           html += `<div class="question-title">${qIndex}. ${qDef.q}</div>`;
-          
           if (qDef.type === "radio") {
             html += `<div class="options" id="opt_${qId}">`;
             qDef.options.forEach((opt, oIdx) => {
-              html += `<label class="option-label"><input type="radio" name="${qId}" value="${oIdx}" onchange="saveStateToStorage()"> <span>${opt}</span></label>`;
+              html += `<label class="option-label"><input type="radio" name="${qId}" value="${oIdx}" onchange="scheduleSaveState()"> <span>${opt}</span></label>`;
             });
             html += `</div>`;
           } else {
-            html += `<input type="text" class="text-input" id="${qId}" pattern="[0-9,-]*" placeholder="Введите ответ" oninput="this.value = this.value.replace(/[^0-9,-]/g, ''); saveStateToStorage();">`;
+            html += `<input type="text" class="text-input" id="${qId}" inputmode="decimal" autocomplete="off" placeholder="Введите ответ" oninput="scheduleSaveState()">`;
           }
-
-          html += `<div style="margin-top:12px;">`;
-          html += `<button class="btn-check" id="btn_${qId}" onclick="checkSingle(${bIdx}, ${tIdx}, ${qIdx})">Проверить задание</button>`;
-          html += `<div class="feedback" id="feed_${qId}"></div></div>`;
+          html += `<div class="answer-note">Если не знаете ответ — оставьте задание пустым. Это отдельный результат диагностики.</div>`;
           html += `</div>`;
           qIndex++;
         });
       });
     });
-
     const quizContainer = document.getElementById("quiz-container");
     quizContainer.innerHTML = html;
     await safeTypeset(quizContainer);
   }
 
-  function checkSingle(bIdx, tIdx, qIdx, silent = false) {
+  function collectQuestionResult(bIdx, tIdx, qIdx) {
     const qDef = quizData[bIdx].themes[tIdx].questions[qIdx];
-    const qId = `q_${bIdx}_${tIdx}_${qIdx}`;
-    let userAns = "";
+    const qId = getQuestionId(bIdx, tIdx, qIdx);
+    const rawAnswer = readAnswer(qId, qDef);
+    const isSkipped = rawAnswer === "";
+    let userText = "Не решено";
+    let correctText = "";
+    let isCorrect = false;
 
     if (qDef.type === "radio") {
-      const els = document.getElementsByName(qId);
-      for (let el of els) { if (el.checked) userAns = el.value; }
-      qDef.userText = (userAns !== "") ? qDef.options[parseInt(userAns)] : "Не выбрано";
-      qDef.correctText = qDef.options[qDef.a];
-    } else {
-      const inputEl = document.getElementById(qId);
-      userAns = inputEl ? inputEl.value.trim().replace(/\./g, ",") : "";
-      qDef.userText = (userAns !== "") ? userAns : "Не введено";
-      qDef.correctText = qDef.a;
-    }
-
-    if (userAns === "") {
-      if (!silent) {
-        const feedEl = document.getElementById(`feed_${qId}`);
-        if (feedEl) feedEl.innerHTML = "<span style='color: #dc2626'>Ответ не введен!</span>";
-      }
-      qDef.isCorrect = false;
-      return;
-    }
-
-    const isRight = (qDef.type === "radio") ? (parseInt(userAns) === qDef.a) : (userAns === qDef.a);
-
-    if (isRight) {
-      qDef.isCorrect = true;
-      if (!silent) {
-        const feedEl = document.getElementById(`feed_${qId}`);
-        if (feedEl) feedEl.innerHTML = "<span style='color: #16a34a'>Верно! ✅</span>";
-
-        if (qDef.type === "radio") {
-          const els = document.getElementsByName(qId);
-          els.forEach(el => el.disabled = true);
-        } else {
-          const inputEl = document.getElementById(qId);
-          if (inputEl) inputEl.disabled = true;
-        }
-
-        const btnEl = document.getElementById(`btn_${qId}`);
-        if (btnEl) btnEl.style.display = "none";
+      correctText = qDef.options[qDef.a];
+      if (!isSkipped) {
+        const optionIndex = Number(rawAnswer);
+        userText = Number.isInteger(optionIndex) && qDef.options[optionIndex] ? qDef.options[optionIndex] : "Не решено";
+        isCorrect = optionIndex === qDef.a;
       }
     } else {
-      qDef.isCorrect = false;
-      if (!silent) {
-        const feedEl = document.getElementById(`feed_${qId}`);
-        if (feedEl) feedEl.innerHTML = "<span style='color: #dc2626'>Неверно ❌</span>";
+      correctText = String(qDef.a);
+      if (!isSkipped) {
+        userText = rawAnswer.replace(/\./g, ",");
+        isCorrect = answersEqual(rawAnswer, qDef.a);
       }
     }
+
+    const status = isSkipped ? "skipped" : (isCorrect ? "correct" : "incorrect");
+    const result = {
+      id: qId,
+      block: quizData[bIdx].block,
+      theme: quizData[bIdx].themes[tIdx].theme,
+      subtopic: qDef.subtopic || quizData[bIdx].themes[tIdx].theme,
+      skill: qDef.skill || '',
+      difficulty: qDef.difficulty || null,
+      userAnswer: rawAnswer,
+      userText,
+      correctText,
+      status,
+      isCorrect
+    };
+    attemptResults[qId] = result;
+    return result;
+  }
+
+  function getStatusPresentation(status) {
+    if (status === 'correct') return { className: 'correct', label: 'Верно ✓', badgeClass: 'badge-ok', screenBadgeClass: 'screen-badge-ok' };
+    if (status === 'skipped') return { className: 'skipped', label: 'Не решено', badgeClass: 'badge-skip', screenBadgeClass: 'screen-badge-skip' };
+    return { className: 'incorrect', label: 'Ошибка', badgeClass: 'badge-err', screenBadgeClass: 'screen-badge-err' };
   }
 
   async function buildPerfectPdfBlob() {
     const { jsPDF } = window.jspdf;
-    const pdfContainer = document.getElementById("result-pdf");
-    const pages = pdfContainer.querySelectorAll(".pdf-page");
-    
-    const pdf = new jsPDF({
-      orientation: "p",
-      unit: "mm",
-      format: "a4",
-      compress: true
-    });
-
+    const pages = document.getElementById("result-pdf").querySelectorAll(".pdf-page");
+    const pdf = new jsPDF({ orientation: "p", unit: "mm", format: "a4", compress: true });
     for (let i = 0; i < pages.length; i++) {
       if (i > 0) pdf.addPage();
-      
-      const canvas = await html2canvas(pages[i], {
-        scale: 2,
-        useCORS: true,
-        logging: false,
-        windowWidth: 794
-      });
-
-      const imgData = canvas.toDataURL("image/jpeg", 0.95);
-      pdf.addImage(imgData, "JPEG", 0, 0, 210, 297);
+      const canvas = await html2canvas(pages[i], { scale: 2, useCORS: true, logging: false, windowWidth: 794, backgroundColor: '#ffffff' });
+      pdf.addImage(canvas.toDataURL("image/jpeg", 0.94), "JPEG", 0, 0, 210, 297);
     }
-
     return pdf.output("blob");
   }
 
@@ -1050,255 +1079,259 @@
     const url = URL.createObjectURL(generatedPdfBlob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `Отчет_${studentData.lastName}_${studentData.firstName}.pdf`;
+    a.download = `Решай360_Отчет_${studentData.lastName}_${studentData.firstName}.pdf`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  function getMasteryStatus(percent, total) {
+    if (total < 3) return { color: 'yellow', label: 'мало данных' };
+    if (percent >= 70) return { color: 'green', label: 'освоено' };
+    if (percent >= 50) return { color: 'yellow', label: 'есть пробелы' };
+    return { color: 'red', label: 'нужно повторить' };
+  }
+
+  function findQuestionPosition(flatIndex) {
+    let current = 0;
+    for (let b = 0; b < quizData.length; b++) {
+      for (let t = 0; t < quizData[b].themes.length; t++) {
+        const count = quizData[b].themes[t].questions.length;
+        if (flatIndex < current + count) return [b, t, flatIndex - current];
+        current += count;
+      }
+    }
+    return [0, 0, 0];
+  }
+
+  function buildPdfPages(summaryBlocks, pdfCardsArray) {
+    const container = document.getElementById('result-pdf');
+    container.innerHTML = '';
+
+    // Сводку делим на две страницы максимум по 4 блока, чтобы она не обрезалась.
+    for (let chunkStart = 0; chunkStart < summaryBlocks.length; chunkStart += 4) {
+      const chunk = summaryBlocks.slice(chunkStart, chunkStart + 4);
+      const page = document.createElement('div');
+      page.className = 'pdf-page';
+      page.innerHTML = `
+        <h1 class="pdf-header-title">Диагностическая карта знаний${chunkStart ? ' — продолжение' : ''}</h1>
+        <div class="pdf-header-subtitle">Ученик: ${escapeHtml(studentData.fullName)} • 7 класс (1–7 классы)</div>
+        <div>${chunk.map(item => `
+          <div class="pdf-block-bar ${item.status.color}">
+            <span>${escapeHtml(item.block)}</span>
+            <span class="pdf-block-percent">${item.percent}% · ${item.status.label}</span>
+          </div>
+          <ul class="pdf-block-ul">${item.themes.map(theme => `<li>${escapeHtml(theme.theme)}: <b>${theme.correct}/${theme.total}</b> — ${theme.status.label}</li>`).join('')}</ul>
+        `).join('')}</div>
+      `;
+      container.appendChild(page);
+    }
+
+    let cardIndex = 0;
+    while (cardIndex < pdfCardsArray.length) {
+      const page = document.createElement('div');
+      page.className = 'pdf-page';
+      const title = document.createElement('h3');
+      title.className = 'detail-section-title';
+      title.textContent = 'Результаты выполнения заданий';
+      page.appendChild(title);
+      const content = document.createElement('div');
+      page.appendChild(content);
+      const start = cardIndex;
+      const count = Math.min(6, pdfCardsArray.length - cardIndex);
+      for (let i = 0; i < count; i++) {
+        const wrapper = document.createElement('div');
+        wrapper.innerHTML = pdfCardsArray[cardIndex++];
+        content.appendChild(wrapper.firstElementChild);
+      }
+      title.textContent = `Результаты выполнения заданий ${start + 1}–${cardIndex}`;
+      container.appendChild(page);
+    }
+
+    const pages = container.querySelectorAll('.pdf-page');
+    pages.forEach((page, index) => {
+      const footer = document.createElement('div');
+      footer.className = 'page-footer';
+      footer.textContent = `Диагностический отчет | Страница ${index + 1} из ${pages.length}`;
+      page.appendChild(footer);
+    });
   }
 
   async function checkAll() {
+    if (isSubmitting || diagnosticFinished) return;
+
+    const unanswered = [];
+    quizData.forEach((block, bIdx) => block.themes.forEach((theme, tIdx) => theme.questions.forEach((qDef, qIdx) => {
+      if (readAnswer(getQuestionId(bIdx, tIdx, qIdx), qDef) === '') unanswered.push(getQuestionId(bIdx, tIdx, qIdx));
+    })));
+
+    if (unanswered.length > 0) {
+      const shouldFinish = confirm(`Осталось без ответа: ${unanswered.length} заданий.\n\nЕсли вы не знаете часть ответов — это нормально для диагностики. Завершить сейчас?`);
+      if (!shouldFinish) return;
+    }
+
+    isSubmitting = true;
+    diagnosticFinished = true;
+    const finishBtn = document.getElementById('finishBtn');
     const downloadBtn = document.getElementById("downloadPdfBtn");
+    finishBtn.disabled = true;
+    finishBtn.innerText = '⏳ Формируем диагностическую карту...';
     downloadBtn.disabled = true;
     downloadBtn.innerText = "⏳ Формирование PDF...";
 
+    const summaryBlocks = [];
+    const pdfCardsArray = [];
     let totalCorrect = 0;
     let totalQuestions = 0;
-    
-    let summaryBlocksScreenHtml = "";
-    let pdfSummaryBlocksHtml = "";
-    let screenCardsHtml = "";
-    let pdfCardsArray = [];
-    
     let qIndex = 1;
 
     quizData.forEach((block, bIdx) => {
       let blockCorrect = 0;
       let blockTotal = 0;
-      let themesHtml = "";
+      const themes = [];
 
       block.themes.forEach((theme, tIdx) => {
         let themeCorrect = 0;
-        let themeTotal = theme.questions.length;
-
+        const themeTotal = theme.questions.length;
         theme.questions.forEach((qDef, qIdx) => {
-          checkSingle(bIdx, tIdx, qIdx, true); 
-          if (qDef.isCorrect) themeCorrect++;
+          const result = collectQuestionResult(bIdx, tIdx, qIdx);
+          if (result.isCorrect) themeCorrect++;
 
-          const isSkipped = (qDef.userText === "Не введено" || qDef.userText === "Не выбрано");
-          
-          let statusClass = "incorrect";
-          let badgeStatus = "Ошибка ⚠️";
-          let badgeClass = "badge-err";
-          let screenBadgeClass = "screen-badge-err";
-
-          if (qDef.isCorrect) {
-            statusClass = "correct";
-            badgeStatus = "Верно ✅";
-            badgeClass = "badge-ok";
-            screenBadgeClass = "screen-badge-ok";
-          } else if (isSkipped) {
-            statusClass = "skipped";
-            badgeStatus = "Не решено ❌";
-            badgeClass = "badge-skip";
-            screenBadgeClass = "screen-badge-skip";
-          }
-
-          screenCardsHtml += `
-            <div class="screen-card ${statusClass}">
-              <div class="screen-card-header">
-                <div class="screen-q">${qIndex}. ${qDef.q}</div>
-                <span class="screen-badge ${screenBadgeClass}">${badgeStatus}</span>
-              </div>
-              <div class="screen-ans">
-                <b>Ответ ученика:</b> ${qDef.userText}<br>
-                <b>Правильный ответ:</b> ${qDef.correctText}
-              </div>
-            </div>
-          `;
-
+          const presentation = getStatusPresentation(result.status);
+          const safeQuestion = qDef.q;
           pdfCardsArray.push(`
-            <div class="pdf-card ${statusClass}">
-              <div class="pdf-q">${qIndex}. ${qDef.q}</div>
-              <div class="pdf-ans">
-                <b>Ответ ученика:</b> ${qDef.userText}<br>
-                <b>Правильный ответ:</b> ${qDef.correctText}
-              </div>
-              <span class="badge ${badgeClass}">${badgeStatus}</span>
+            <div class="pdf-card ${presentation.className}">
+              <div class="pdf-q">${qIndex}. ${safeQuestion}</div>
+              <div class="pdf-ans"><b>Ответ ученика:</b> ${escapeHtml(result.userText)}<br><b>Правильный ответ:</b> ${escapeHtml(result.correctText)}</div>
+              <span class="badge ${presentation.badgeClass}">${presentation.label}</span>
             </div>
           `);
-
           qIndex++;
         });
-
-        themesHtml += `<li>${theme.theme}: <b>${themeCorrect} / ${themeTotal}</b></li>`;
+        const themePercent = Math.round((themeCorrect / themeTotal) * 100);
+        themes.push({ theme: theme.theme, correct: themeCorrect, total: themeTotal, percent: themePercent, status: getMasteryStatus(themePercent, themeTotal) });
         blockCorrect += themeCorrect;
         blockTotal += themeTotal;
       });
 
       const blockPercent = Math.round((blockCorrect / blockTotal) * 100);
-      let colorClass = "green";
-      if (blockPercent < 50) {
-        colorClass = "red";
-      } else if (blockPercent < 70) {
-        colorClass = "yellow";
-      }
-
-      summaryBlocksScreenHtml += `
-        <div class="screen-block-bar ${colorClass}">
-          <span>${block.block} (${blockCorrect} из ${blockTotal})</span>
-          <span class="screen-block-percent">${blockPercent}%</span>
-        </div>
-        <ul class="screen-block-ul">${themesHtml}</ul>
-      `;
-
-      pdfSummaryBlocksHtml += `
-        <div class="pdf-block-bar ${colorClass}">
-          <span>${block.block}</span>
-          <span class="pdf-block-percent">${blockPercent}%</span>
-        </div>
-        <ul class="pdf-block-ul">${themesHtml}</ul>
-      `;
-
+      summaryBlocks.push({ block: block.block, correct: blockCorrect, total: blockTotal, percent: blockPercent, themes, status: getMasteryStatus(blockPercent, blockTotal) });
       totalCorrect += blockCorrect;
       totalQuestions += blockTotal;
     });
 
     const percent = Math.round((totalCorrect / totalQuestions) * 100);
+    const strongThemes = summaryBlocks.flatMap(b => b.themes.filter(t => t.total >= 3 && t.percent >= 70)).slice(0, 5);
+    const weakThemes = summaryBlocks.flatMap(b => b.themes.filter(t => t.total >= 3 && t.percent < 50)).slice(0, 5);
 
-    const screenResultHtml = `
-      <div class="screen-header-card">
-        <h2>Отчет по тестированию</h2>
-        <p>Ученик: <b>${escapeHtml(studentData.fullName)}</b></p>
-        <div class="screen-score-badge">Результат: ${totalCorrect} из ${totalQuestions} (${percent}%)</div>
-      </div>
+    const screenCardsHtml = pdfCardsArray.map((_, flatIndex) => {
+      const [b,t,q] = findQuestionPosition(flatIndex);
+      const result = attemptResults[getQuestionId(b,t,q)];
+      const qDef = quizData[b].themes[t].questions[q];
+      const p = getStatusPresentation(result.status);
+      return `<div class="screen-card ${p.className}"><div class="screen-card-header"><div class="screen-q">${flatIndex + 1}. ${qDef.q}</div><span class="screen-badge ${p.screenBadgeClass}">${p.label}</span></div><div class="screen-ans"><b>Ответ ученика:</b> ${escapeHtml(result.userText)}<br><b>Правильный ответ:</b> ${escapeHtml(result.correctText)}</div></div>`;
+    }).join('');
+
+    document.getElementById("result-screen").innerHTML = `
+      <div class="screen-header-card"><h2>Диагностическая карта знаний</h2><p>Ученик: <b>${escapeHtml(studentData.fullName)}</b></p><div class="screen-score-badge">Проверено: ${totalCorrect} из ${totalQuestions} (${percent}%)</div></div>
+      <h3 class="screen-section-title">Что видно по результатам</h3>
+      <div class="screen-card correct"><b>Сильные темы</b><ul>${strongThemes.length ? strongThemes.map(t => `<li>${escapeHtml(t.theme)} — ${t.percent}%</li>`).join('') : '<li>Недостаточно данных для уверенного вывода.</li>'}</ul></div>
+      <div class="screen-card incorrect"><b>Требуют внимания</b><ul>${weakThemes.length ? weakThemes.map(t => `<li>${escapeHtml(t.theme)} — ${t.percent}%</li>`).join('') : '<li>Критических пробелов по проверенным темам не обнаружено.</li>'}</ul></div>
       <h3 class="screen-section-title">Сводка по блокам знаний</h3>
-      ${summaryBlocksScreenHtml}
+      ${summaryBlocks.map(item => `<div class="screen-block-bar ${item.status.color}"><span>${escapeHtml(item.block)} (${item.correct} из ${item.total})</span><span class="screen-block-percent">${item.percent}% · ${item.status.label}</span></div><ul class="screen-block-ul">${item.themes.map(theme => `<li>${escapeHtml(theme.theme)}: <b>${theme.correct}/${theme.total}</b> — ${theme.status.label}</li>`).join('')}</ul>`).join('')}
       <h3 class="screen-section-title">Детализация ответов</h3>
       ${screenCardsHtml}
     `;
 
-    document.getElementById("result-screen").innerHTML = screenResultHtml;
-
-    // Сборка PDF строго по 10 заданий на страницу
-    const pageSizes = [];
-    for (let i = 0; i < pdfCardsArray.length; i += 10) {
-      pageSizes.push(Math.min(10, pdfCardsArray.length - i));
-    }
-    const totalPages = 1 + pageSizes.length;
-
-    let pagesHtml = `
-      <div class="pdf-page">
-        <h1 class="pdf-header-title">Диагностическая карта знаний</h1>
-        <div class="pdf-header-subtitle">Ученик: ${escapeHtml(studentData.fullName)} • 8 класс (1–7 классы)</div>
-
-        <div>
-          ${pdfSummaryBlocksHtml}
-        </div>
-
-        <div class="page-footer">Диагностический отчет | Страница 1 из ${totalPages}</div>
-      </div>
-    `;
-
-    let cardIndex = 0;
-    pageSizes.forEach((size, p) => {
-      const pageNum = p + 2;
-      const pageCards = pdfCardsArray.slice(cardIndex, cardIndex + size).join("");
-      const startQ = cardIndex + 1;
-      const endQ = Math.min(cardIndex + size, pdfCardsArray.length);
-      cardIndex += size;
-
-      pagesHtml += `
-        <div class="pdf-page">
-          <h3 class="detail-section-title">Результаты выполнения заданий (Задания ${startQ}–${endQ})</h3>
-          ${pageCards}
-          <div class="page-footer">Диагностический отчет | Страница ${pageNum} из ${totalPages}</div>
-        </div>
-      `;
-    });
-
-    const resultPdfContainer = document.getElementById("result-pdf");
-    resultPdfContainer.innerHTML = pagesHtml;
-
+    buildPdfPages(summaryBlocks, pdfCardsArray);
     document.getElementById("main-container").style.display = "none";
     document.getElementById("result-wrapper").style.display = "block";
-
     window.scrollTo(0, 0);
     document.documentElement.scrollTop = 0;
     document.body.scrollTop = 0;
 
     await new Promise(resolve => setTimeout(resolve, 50));
     await safeTypeset(document.getElementById("result-screen"));
-    await new Promise(resolve => setTimeout(resolve, 100));
-    await safeTypeset(resultPdfContainer);
-    await new Promise(resolve => setTimeout(resolve, 150));
+    await safeTypeset(document.getElementById("result-pdf"));
+    await new Promise(resolve => setTimeout(resolve, 200));
 
     try {
       generatedPdfBlob = await buildPerfectPdfBlob();
       downloadBtn.disabled = false;
       downloadBtn.innerText = "📄 Скачать PDF-отчет";
-
-      sendToTelegram(studentData.fullName, totalCorrect, totalQuestions, generatedPdfBlob);
-
+      const telegramSuccess = await sendToTelegram(studentData.fullName, totalCorrect, totalQuestions, generatedPdfBlob);
+      if (telegramSuccess) {
+        clearStorage();
+        finishBtn.innerText = '✓ Диагностика завершена';
+      } else {
+        diagnosticFinished = false;
+        finishBtn.disabled = false;
+        finishBtn.innerText = 'Повторить отправку результата';
+        const errorNote = document.createElement('div');
+        errorNote.className = 'finish-note';
+        errorNote.textContent = 'PDF сформирован и доступен для скачивания. Автоматическая отправка не удалась — ответы сохранены в браузере.';
+        document.getElementById('result-wrapper').prepend(errorNote);
+      }
     } catch (err) {
       console.error("Ошибка при генерации PDF:", err);
+      diagnosticFinished = false;
+      finishBtn.disabled = false;
+      finishBtn.innerText = 'Повторить формирование результата';
       downloadBtn.innerText = "⚠️ Ошибка генерации PDF";
+    } finally {
+      isSubmitting = false;
     }
   }
 
   async function sendToTelegram(fullName, correct, total, pdfBlob) {
-    if (!BOT_TOKEN || BOT_TOKEN === 'ВАШ_ТОКЕН_БОТА') return;
-
+    if (!BOT_TOKEN || BOT_TOKEN === 'ВАШ_ТОКЕН_БОТА') return false;
     try {
       if (pdfBlob) {
         const pdfData = new FormData();
         pdfData.append('chat_id', CHAT_ID);
-        pdfData.append('caption', `📊 Результат теста (8 класс): ${fullName}\nНабрано баллов: ${correct} из ${total}`);
+        pdfData.append('caption', `📊 Результат теста (7 класс): ${escapeHtml(fullName)}\nНабрано баллов: ${correct} из ${total}`);
+        pdfData.append('parse_mode', 'HTML');
         pdfData.append('document', pdfBlob, `Отчет_${studentData.lastName}_${studentData.firstName}.pdf`);
-
-        await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendDocument`, {
-          method: 'POST',
-          body: pdfData
-        });
+        const response = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendDocument`, { method: 'POST', body: pdfData });
+        if (!response.ok) throw new Error(`Telegram PDF HTTP ${response.status}`);
+        const data = await response.json();
+        if (!data.ok) throw new Error(data.description || 'Telegram PDF error');
       }
 
-      if (uploadedPhotos && uploadedPhotos.length > 0) {
+      if (uploadedPhotos.length > 0) {
         if (uploadedPhotos.length === 1) {
-          const singleData = new FormData();
-          singleData.append('chat_id', CHAT_ID);
-          singleData.append('photo', uploadedPhotos[0]);
-          singleData.append('caption', `📷 Черновик ученика: ${fullName}`);
-
-          await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, {
-            method: 'POST',
-            body: singleData
-          });
+          const data = new FormData();
+          data.append('chat_id', CHAT_ID);
+          data.append('photo', uploadedPhotos[0]);
+          data.append('caption', `📷 Черновик ученика: ${escapeHtml(fullName)}`);
+          const response = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, { method: 'POST', body: data });
+          if (!response.ok) throw new Error(`Telegram photo HTTP ${response.status}`);
+          const result = await response.json();
+          if (!result.ok) throw new Error(result.description || 'Telegram photo error');
         } else {
-          const mediaGroupData = new FormData();
-          mediaGroupData.append('chat_id', CHAT_ID);
-
-          const mediaArray = [];
-          uploadedPhotos.forEach((file, i) => {
-            const attachName = `photo_${i}`;
-            mediaGroupData.append(attachName, file);
-            mediaArray.push({
-              type: 'photo',
-              media: `attach://${attachName}`,
-              caption: i === 0 ? `📷 Черновики решения: ${fullName} (${uploadedPhotos.length} фото)` : ''
+          for (let batchStart = 0; batchStart < uploadedPhotos.length; batchStart += 10) {
+            const batch = uploadedPhotos.slice(batchStart, batchStart + 10);
+            const data = new FormData();
+            data.append('chat_id', CHAT_ID);
+            const media = [];
+            batch.forEach((file, i) => {
+              const attachName = `photo_${batchStart + i}`;
+              data.append(attachName, file);
+              media.push({ type: 'photo', media: `attach://${attachName}`, caption: i === 0 ? `📷 Черновики решения: ${escapeHtml(fullName)} (${uploadedPhotos.length} фото)` : '' });
             });
-          });
-
-          mediaGroupData.append('media', JSON.stringify(mediaArray));
-
-          await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMediaGroup`, {
-            method: 'POST',
-            body: mediaGroupData
-          });
+            data.append('media', JSON.stringify(media));
+            const response = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMediaGroup`, { method: 'POST', body: data });
+            if (!response.ok) throw new Error(`Telegram media HTTP ${response.status}`);
+            const result = await response.json();
+            if (!result.ok) throw new Error(result.description || 'Telegram media error');
+          }
         }
       }
-      clearStorage();
+      return true;
     } catch(e) {
       console.error("Ошибка при отправке в Telegram:", e);
+      return false;
     }
   }
 
